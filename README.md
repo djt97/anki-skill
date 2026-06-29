@@ -6,9 +6,13 @@ A skill that connects an AI coding agent ([Claude Code](https://docs.anthropic.c
 
 ## Install
 
-The easy way: open a fresh chat in Claude Code or Codex, give it this repo's URL, and say **"install this skill."** Both are capable of cloning the repo and copying the `anki/` folder into the right place on their own.
+The easy way: open a fresh chat in Claude Code or Codex, and simply paste
+```bash
+Install this skill: https://github.com/djt97/anki-skill
+```
+Both are capable of cloning the repo and copying the `anki/` folder into the right place on their own.
 
-By hand:
+If you want to do it manually:
 
 **Claude Code**
 
