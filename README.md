@@ -61,7 +61,7 @@ trouble = 0.35·(lapse rate) + 0.25·(ease drop) + 0.20·(relative time) + 0.20�
 ## Credits
 
 - The card-quality tiers (T0–T3) used when rewriting are adapted from the framework at [memory-machines.com/report](https://memory-machines.com/report).
-- Background and a walkthrough: [Cleaning up your Anki deck with Claude Code](https://djt97.github.io/).
+- Background and a walkthrough: [Cleaning up your Anki deck with Claude Code](https://djthornton.org/blog/2026/clean-up-your-flashcards/).
 
 ## License
 
