@@ -1,0 +1,4 @@
+.DS_Store
+**/conventions.local.md
+**/__pycache__/
+*.pyc

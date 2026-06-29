@@ -1,0 +1,3 @@
+conventions.local.md
+__pycache__/
+*.pyc

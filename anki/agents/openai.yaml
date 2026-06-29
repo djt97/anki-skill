@@ -1,0 +1,6 @@
+interface:
+  display_name: "Anki"
+  short_description: "Inspect and safely improve Anki cards"
+  default_prompt: "Use $anki to inspect or improve my Anki collection. Do not make changes without showing me the exact proposal and receiving explicit approval."
+policy:
+  allow_implicit_invocation: true
