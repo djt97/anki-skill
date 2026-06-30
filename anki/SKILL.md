@@ -16,7 +16,7 @@ Use AnkiConnect to inspect and improve the user's Anki collection. Treat this fi
 4. **Find weaknesses, not missing knowledge.** Collection data can reveal weak, redundant, confusable, costly, or poorly worded cards. Do not claim to detect syllabus gaps without a syllabus or another source defining expected coverage.
 5. **Adapt instead of assuming.** Do not assign meanings to flags, tags, suspension, fields, or card styles until the user's conventions have been loaded or discovered and confirmed.
 6. **Respect the source of truth.** If a note is externally authored, edit the external source only; never update the Anki note directly. If it is Anki-native, edit Anki only. Confirm the route before proposing a write.
-7. **Use Anki terminology.** Say lapses, leeches, intervals, ease, retrievability, difficulty, and stability where applicable. Do not invent marketing-style metrics. Clearly label the skill's own `trouble`, `weakness`, and `confidence` scores as custom diagnostics.
+7. **Use Anki terminology.** Say lapses, leeches, intervals, ease, retrievability, difficulty, and stability where applicable. Do not invent marketing-style metrics. Clearly label the skill's own `cost` score as a custom diagnostic.
 8. **Keep one dependency.** Use AnkiConnect and Python's standard library only. Do not install databases, packages, or other services.
 
 ## Interaction rules
@@ -54,7 +54,7 @@ For a bare invocation, “help me with my flashcards,” or another general requ
 
 1. **Connect.** Verify AnkiConnect. If unavailable, explain that Anki must be running with AnkiConnect installed, then stop.
 2. **Conventions.** Load `conventions.local.md`. If it does not exist, run the discovery in [references/conventions.md](references/conventions.md), confirm the inferences, and offer to save them.
-3. **Health check.** Run [references/health-check.md](references/health-check.md): explain what the collection is about, where trouble concentrates, and which cards are costliest.
+3. **Scope, then health check.** First ask whether to focus on or exclude a particular deck before ranking — one large deck (e.g. a language or geography deck) can otherwise dominate the costliest list. Default to the whole collection. Then run [references/health-check.md](references/health-check.md): explain what the collection is about, where cost concentrates, and which cards are costliest.
 4. **Calibrate.** If no saved `preferences` exist, run the preference interview in [references/fixing-and-triage.md](references/fixing-and-triage.md). Offer to save the resulting profile; do not write it without approval.
 5. **Hand back and stop.** Do not begin fixing cards. Reassure the user that nothing will change without explicit approval, then ask where they want to start. Offer choices such as the costliest cards, a deck or note type, or their confirmed review-flag queue.
 
@@ -66,7 +66,7 @@ On later general invocations, skip discovery and calibration that are already sa
 2. **Resolve the destination.** Check whether the note is Anki-native or externally authored.
 3. **Propose a batch.** Show 1–4 proposed edits at once; use one card for a heavy rewrite. For each item, show:
    - card and note identifiers for traceability;
-   - current Front/Back or affected fields, tags, deck, and relevant trouble signals;
+   - current Front/Back or affected fields, tags, deck, and relevant cost signals;
    - the exact before/after change or operation;
    - all sibling cards or files that will be affected;
    - the reason for the recommendation and its T0–T3 construction grade;
@@ -82,7 +82,7 @@ Deletion requires a separate, explicit confirmation after showing every card gen
 
 - **Connection, API calls, IDs, search syntax, external sources, mutation hazards:** [references/ankiconnect.md](references/ankiconnect.md)
 - **Discover and save flags, tags, fields, external-source rules, and style:** [references/conventions.md](references/conventions.md)
-- **Collection orientation, trouble scoring, hotspots, and content scan:** [references/health-check.md](references/health-check.md)
+- **Collection orientation, cost scoring, hotspots, and content scan:** [references/health-check.md](references/health-check.md)
 - **Preference discovery, costly-card decisions, fix batches, and triage:** [references/fixing-and-triage.md](references/fixing-and-triage.md)
 - **T0–T3 rubric and card-writing rules:** [references/card-writing.md](references/card-writing.md)
 

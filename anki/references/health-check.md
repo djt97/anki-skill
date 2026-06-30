@@ -17,7 +17,7 @@ The health check is the skill's core read-only analysis. It should add what Anki
 
 - read the cards and explain the collection's subject matter;
 - identify specific cards likely to be consuming disproportionate review effort;
-- show where that trouble concentrates by topic, tag, deck, or note type;
+- show where that cost concentrates by topic, tag, deck, or note type;
 - identify construction problems such as ambiguity, bundled answers, and confusable pairs.
 
 Do not recreate Anki's normal retention dashboard, due forecast, or basic counts unless a count is needed to explain the custom analysis.
@@ -26,7 +26,15 @@ Do not claim that the analysis finds missing syllabus content. It finds weakness
 
 ## Generate the read-only report
 
-From the skill root, run:
+First choose the scope. Unless the user has already named a deck or queue, ask whether to focus on a single deck or exclude one before ranking — a large deck (a language or geography deck, for instance) can otherwise dominate the costliest cards and hide problems elsewhere. Default to the whole collection when they have no preference. Translate the answer into the `--query` value:
+
+| scope | `--query` |
+| --- | --- |
+| whole collection (default) | `deck:*` |
+| focus on one deck (includes subdecks) | `deck:"Deck Name"` |
+| exclude a deck | `deck:* -deck:"Deck Name"` |
+
+Then, from the skill root, run:
 
 ```bash
 python3 scripts/health_report.py \
@@ -37,16 +45,16 @@ python3 scripts/health_report.py \
   > /tmp/anki-health.json
 ```
 
-For a requested deck, tag, or queue, replace `deck:*` with the exact Anki search. If `costly_pctile` is saved in `conventions.local.md`, pass that value instead of `5`.
+For a tag or queue instead, replace `deck:*` with the exact Anki search. If `costly_pctile` is saved in `conventions.local.md`, pass that value instead of `5`.
 
 The script:
 
 - fetches data in batches of 200;
 - uses an evenly spaced representative sample of at most 400 cards;
 - scores every reviewed matching card;
-- returns the 25 highest-trouble cards by default;
+- returns the 25 highest-cost cards by default;
 - enriches the sample and worst cards with tags and sibling-card IDs;
-- leaves `time_ratio` at `0.0`, matching the original default;
+- scores by `cost = lapse_rate / interval_days`, so cards the user never fails score `0`;
 - makes no changes to Anki.
 
 Its `display_fields` are plain-text, potentially truncated previews. Never use them as write input. Re-fetch complete raw fields before proposing an edit.
@@ -80,13 +88,13 @@ Use the user's actual data; never copy the example's topics or numbers.
 
 ## Rank costly cards
 
-Sort all reviewed cards by `trouble` and inspect the highest 25. “Costly” means the worst `costly_pctile` percent, default `5`, by this custom trouble score. It is not the same as Anki's leech tag or `prop:lapses>=8`.
+Sort all reviewed cards by `cost` and inspect the highest 25. “Costly” means the worst `costly_pctile` percent, default `5`, by this custom cost score. It is not the same as Anki's leech tag or `prop:lapses>=8`.
 
 For each card you surface, show:
 
 - front and back or the relevant note fields;
 - deck, note type, and tags;
-- reps, lapses, lapse rate, interval, and the custom trouble score;
+- reps, lapses, lapse rate, interval, and the custom cost score;
 - the annotation field, if configured;
 - a concise hypothesis about why it is costly;
 - whether sibling cards from the same note may share the problem.
@@ -95,7 +103,7 @@ Do not treat a high score as proof that wording is bad. A genuinely difficult bu
 
 ## Find hotspots
 
-Group high-trouble cards by:
+Group high-cost cards by:
 
 - topic cluster;
 - deck;
@@ -106,16 +114,16 @@ Group high-trouble cards by:
 Look for disproportion rather than raw size. A useful comparison is:
 
 ```text
-share of high-trouble cards in group ÷ share of all reviewed cards in group
+share of high-cost cards in group ÷ share of all reviewed cards in group
 ```
 
-Describe the underlying counts as well as the ratio. For example, a small anatomy tag might contain 6% of reviewed cards but 30% of the top trouble set.
+Describe the underlying counts as well as the ratio. For example, a small anatomy tag might contain 6% of reviewed cards but 30% of the top cost set.
 
-Avoid causal claims. Say “trouble concentrates here” or “this pattern is associated with more lapses,” not “this tag causes lapses.”
+Avoid causal claims. Say “cost concentrates here” or “this pattern is associated with more lapses,” not “this tag causes lapses.”
 
 ## Scan card content
 
-The model's advantage is that it can read the card content. Inspect the highest-trouble set and a representative sample for:
+The model's advantage is that it can read the card content. Inspect the highest-cost set and a representative sample for:
 
 - **ambiguous or non-univocal fronts:** several defensible answers fit;
 - **list-style cards:** “Name 3…” or a back containing several independently recallable items;
@@ -145,73 +153,21 @@ After a general first-run health check and preference calibration, stop. Reassur
 
 For a health-check-only request, also stop after the report unless the user explicitly asks to proceed to proposals.
 
-## Exact score definitions
+## Exact score definition
 
-The weights, thresholds, and formulas below are unchanged.
-
-### Lapse rate
+The skill ranks cards by the review cost their *failures* impose — the part rewriting can actually fix.
 
 ```text
-lapse_rate = min(lapses / max(reps, 1), 1)
+lapse_rate = lapses / reps
+cost       = lapse_rate / interval_days
 ```
 
-This is the fraction of recorded repetitions associated with lapses, capped at 1.
+Scored only for graduated cards with enough history: `reps >= 5` and `interval_days >= 1` (`is:review`). A card the user never fails scores `0`.
 
-### Ease erosion
+**Why this form (so it can be explained honestly):**
 
-```text
-ease_erosion = clamp(1 - factor / 2500, 0, 1)    when factor > 0
-ease_erosion = 0.5                                when factor == 0
-```
+- `interval_days` is **FSRS's own scheduling output** — its durability verdict for the card, fit to the user's review history. So `1 / interval` is how often the card keeps coming back. We read FSRS's verdict; we do not re-derive or out-measure it.
+- `lapse_rate` is the per-review failure probability. Multiplying gives the rate at which the card *wastes* reviews on lapses.
+- We deliberately do **not** rank by total `reps` (a sunk cost), nor by the base review frequency of cards the user gets right (reviewing a card you remember is the price of memory, not a defect). Only the failure-driven excess is fixable by rewriting.
 
-Under FSRS, the legacy `factor` may be zero. The `0.5` fallback preserves the original formula and usually contributes the same constant to all such cards; do not present it as measured FSRS difficulty.
-
-### Mature failure
-
-```text
-mature_failure = interval > 21 days and lapse_rate > 0.15
-```
-
-This is a strong binary signal that a card with a mature interval is still failing often.
-
-### Time ratio
-
-```text
-time_ratio = dwell time on this card / the user's typical card dwell time
-```
-
-The default implementation leaves this at `0.0`. Do not enable it merely because review logs are available. First define and validate a robust normalization, cap extreme timer values, and explain the definition to the user. Enabling it retains the same weight of `0.20`.
-
-### Trouble
-
-```text
-trouble = (
-    0.35 * lapse_rate
-    + 0.25 * ease_erosion
-    + 0.20 * time_ratio
-    + 0.20 * mature_failure
-)
-```
-
-Higher means the card merits more attention. This is a custom prioritization score, not an Anki or FSRS metric.
-
-### Weakness
-
-```text
-weakness = lapses / max(days_since_note_id_timestamp, 1)
-```
-
-This is the transparent “lapses per day the note has existed” alternative. Treat note-ID time as an age proxy, especially for imported collections.
-
-### Confidence
-
-```text
-confidence = (
-    0.35 * min(reps / 25, 1)
-    + 0.35 * min(interval / 90, 1)
-    + 0.20 * (1 - lapse_rate)
-    + 0.10 * min(factor / 2600, 1)
-)
-```
-
-Higher suggests a healthier, better-established card. It is a separate health score, not the mathematical inverse of `trouble`. Under FSRS, a zero legacy factor lowers this score, so label that limitation.
+**What this is not.** Standard AnkiConnect does not expose FSRS's per-card difficulty, stability, or retrievability — and Anki already lets the user sort by those in the Browser. This `cost` is a simple, opinionated *triage ranking* of rewrite candidates: not a difficulty measure, and not a reimplementation of FSRS. The legacy SM-2 `ease` factor is frozen (stale) under FSRS, so it is intentionally unused.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a read-only Anki collection snapshot and exact trouble scores."""
+"""Generate a read-only Anki collection snapshot and exact cost scores."""
 
 from __future__ import annotations
 
@@ -47,54 +47,38 @@ def display_text(value: str) -> str:
     return re.sub(r"\s+", " ", unescape(text)).strip()
 
 
+MIN_REPS = 5  # need enough review history for a stable failure rate
+
+
 def score_card(card: dict[str, Any], *, now: float | None = None) -> dict[str, Any] | None:
-    """Apply the skill's unchanged trouble, weakness, and confidence formulas."""
+    """Rank cards by the review cost their *failures* impose — the part rewriting can fix.
+
+        cost = lapse_rate / interval        where  lapse_rate = lapses / reps
+
+    A card's ``interval`` is FSRS's own durability verdict (fit to the user's
+    reviews), so ``1 / interval`` is how often the card comes back; multiplying by the
+    per-review failure rate gives the rate at which the card *wastes* reviews on lapses.
+    A card you never fail scores 0 — rewriting it would save nothing, and the cost of
+    reviewing a card you get right is the price of remembering, not a defect. Only
+    graduated cards (a real interval) with enough history are scored.
+    """
     reps = int(card.get("reps", 0) or 0)
-    if reps <= 0:
+    interval = int(card.get("interval", 0) or 0)
+    if reps < MIN_REPS or interval < 1:
         return None
 
-    current_time = time.time() if now is None else now
     lapses = int(card.get("lapses", 0) or 0)
-    interval = int(card.get("interval", 0) or 0)
-    factor = int(card.get("factor", 0) or 0)
-    note_id = int(card["note"])
-    age_days = max((current_time - note_id / 1000.0) / 86400.0, 1.0)
-
-    lapse_rate = min(lapses / max(reps, 1), 1.0)
-    ease_erosion = (
-        max(0.0, min(1.0, 1.0 - factor / 2500.0)) if factor > 0 else 0.5
-    )
-    mature_failure = interval > 21 and lapse_rate > 0.15
-    time_ratio = 0.0
-
-    trouble = (
-        0.35 * lapse_rate
-        + 0.25 * ease_erosion
-        + 0.20 * time_ratio
-        + 0.20 * (1.0 if mature_failure else 0.0)
-    )
-    weakness = lapses / age_days
-    confidence = (
-        0.35 * min(reps / 25.0, 1.0)
-        + 0.35 * min(interval / 90.0, 1.0)
-        + 0.20 * (1.0 - lapse_rate)
-        + 0.10 * min(factor / 2600.0, 1.0)
-    )
+    lapse_rate = lapses / reps
+    cost = lapse_rate / interval
 
     return {
         "card": int(card["cardId"]),
-        "note": note_id,
-        "trouble": round(trouble, 4),
-        "weakness_lapses_per_day": round(weakness, 4),
-        "confidence": round(confidence, 4),
+        "note": int(card["note"]),
+        "cost": round(cost, 6),
         "reps": reps,
         "lapses": lapses,
         "lapse_rate": round(lapse_rate, 4),
         "interval_days": interval,
-        "factor": factor,
-        "ease_erosion": round(ease_erosion, 4),
-        "mature_failure": mature_failure,
-        "time_ratio": time_ratio,
     }
 
 
@@ -148,7 +132,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
 
     now = time.time()
     scores = [score for card in cards if (score := score_card(card, now=now)) is not None]
-    scores.sort(key=lambda row: (row["trouble"], row["weakness_lapses_per_day"]), reverse=True)
+    scores.sort(key=lambda row: row["cost"], reverse=True)
     score_by_card = {int(row["card"]): row for row in scores}
 
     sample_ids = even_sample(card_ids, args.sample)
@@ -173,7 +157,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     costly_count = (
         max(1, math.ceil(len(scores) * args.costly_percentile / 100.0)) if scores else 0
     )
-    costly_threshold = scores[costly_count - 1]["trouble"] if costly_count else None
+    costly_threshold = scores[costly_count - 1]["cost"] if costly_count else None
 
     representative_sample = [
         summarize_card(
@@ -209,20 +193,18 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "costly_definition": {
             "worst_percent": args.costly_percentile,
             "reviewed_card_count": costly_count,
-            "trouble_threshold": costly_threshold,
+            "cost_threshold": costly_threshold,
         },
         "score_parameters": {
-            "trouble": (
-                "0.35*lapse_rate + 0.25*ease_erosion + 0.20*time_ratio "
-                "+ 0.20*mature_failure"
+            "cost": "lapse_rate / interval_days  (lapse_rate = lapses / reps)",
+            "interval_note": (
+                "interval_days is FSRS's own scheduling output (its durability "
+                "verdict, fit to the user's reviews); 1/interval is review frequency."
             ),
-            "time_ratio_used": 0.0,
-            "mature_failure": "interval_days > 21 and lapse_rate > 0.15",
-            "fsrs_factor_fallback": 0.5,
-            "weakness": "lapses / max(days_since_note_id_timestamp, 1)",
-            "confidence": (
-                "0.35*min(reps/25,1) + 0.35*min(interval/90,1) "
-                "+ 0.20*(1-lapse_rate) + 0.10*min(factor/2600,1)"
+            "scored_only_if": f"reps >= {MIN_REPS} and interval_days >= 1",
+            "zero_lapse_note": (
+                "cards you never fail score 0 — the base cost of reviewing a card you "
+                "get right is the price of remembering, not a defect to fix"
             ),
         },
         "display_warning": (

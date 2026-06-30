@@ -87,7 +87,7 @@ For each card, display:
 
 - card ID, note ID, deck, note type, tags, and sibling card IDs;
 - front and back or all fields that matter;
-- reps, lapses, lapse rate, interval, and trouble score where available;
+- reps, lapses, lapse rate, interval, and cost score where available;
 - the annotation field;
 - T0–T3 construction grade;
 - the recommended operation;
@@ -110,7 +110,7 @@ A split is a mutation to card content and potentially note creation. Preview eve
 
 ## Handle costly cards
 
-A costly card is in the worst `costly_pctile` percent by the custom trouble score, default 5. It is not the same as an Anki leech.
+A costly card is in the worst `costly_pctile` percent by the custom cost score, default 5. It is not the same as an Anki leech.
 
 For every costly card, surface the data and ask deliberately even when a broad saved preference would otherwise apply. Offer the full menu:
 
@@ -123,7 +123,7 @@ For every costly card, surface the data and ask deliberately even when a broad s
 7. Rewrite the wording while keeping the target, when applicable.
 8. Something else.
 
-Do not choose on the user's behalf. A high trouble score alone does not justify deletion or re-aiming.
+Do not choose on the user's behalf. A high cost score alone does not justify deletion or re-aiming.
 
 ## Triage suspended, leech, or review queues
 

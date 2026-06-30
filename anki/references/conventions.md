@@ -76,7 +76,7 @@ A tag that closely overlaps the lapse search may be the user's leech convention.
 Keep these concepts separate in saved state:
 
 - `leech_signal`: the user's confirmed convention, often `tag:leech`;
-- costly cards: the skill's worst percentile by custom trouble score;
+- costly cards: the skill's worst percentile by custom cost score;
 - `prop:lapses>=8`: an Anki search condition.
 
 ## Detect an annotation field
@@ -169,11 +169,11 @@ preferences:
 Field meanings:
 
 - `review_flag`: the confirmed flag used to park cards for review, or `none`.
-- `leech_signal`: the user's confirmed leech query, not the trouble score.
+- `leech_signal`: the user's confirmed leech query, not the cost score.
 - `annotation_field`: the field to read first during review, or `none`.
 - `external_source`: the confirmed source directory, or `none`.
 - `card_style`: `basic`, `cloze`, or `mixed`.
-- `costly_pctile`: worst N percent by trouble score that always require a deliberate choice; default and original value is `5`.
+- `costly_pctile`: worst N percent by cost score that always require a deliberate choice; default and original value is `5`.
 - `preferences`: per-card-type defaults learned in the preference interview.
 
 Do not populate a preference that the user has not expressed. Do not silently replace corrections with newly inferred values on a later run.

@@ -45,7 +45,7 @@ git clone https://github.com/djt97/anki-skill.git
 
 ## What it does
 
-- **Health check** — what your collection is about, where your lapses concentrate, and the cards draining the most review time (a custom "trouble" score, not Anki's blunt 8-lapse leech rule).
+- **Health check** — what your collection is about, where your lapses concentrate, and the cards draining the most review time (a custom "cost" score, not Anki's blunt 8-lapse leech rule).
 - **Learns your conventions** — works out what your flags and tags mean, and which field you use for notes-to-self, instead of assuming.
 - **Asks your preferences** — a quick one-time interview: for each *type* of struggling card, rewrite it, give it a memory hook, split it, or delete it?
 - **Fixes collaboratively** — proposes edits in small batches, applies only what you approve, and flags any fact it hasn't verified against your source.
@@ -54,13 +54,13 @@ git clone https://github.com/djt97/anki-skill.git
 
 The skill's first rule is to **never change a card, a source file, or its own saved state without showing you the exact change first and getting your explicit approval.** It also never touches Anki's scheduling (intervals, ease, due dates, or FSRS parameters).
 
-## The "trouble" metric
+## The cost metric
 
 ```
-trouble = 0.35·(lapse rate) + 0.25·(ease drop) + 0.20·(relative time) + 0.20·(mature failure)
+cost = lapse_rate / interval        (lapse_rate = lapses / reviews)
 ```
 
-— so a card you keep failing, take ages on, or flunk *despite* a long interval surfaces early, instead of after you've already wasted weeks on it. Full definitions are in [`anki/references/health-check.md`](anki/references/health-check.md).
+A card surfaces when you keep *failing* it and FSRS keeps bringing it back on a short interval. The interval is FSRS's own durability verdict, fit to your reviews, so the skill leans on it instead of reinventing difficulty. A card you never fail scores zero, so reset or imported cards with no real lapse history don't clutter the list. Full definitions are in [`anki/references/health-check.md`](anki/references/health-check.md).
 
 ## Credits
 
