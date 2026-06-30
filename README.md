@@ -1,8 +1,12 @@
 # Anki Skill — for Claude Code & Codex
 
-> **Talk to your flashcards.** Find the cards quietly costing you the most reviews — and fix them, with your approval at every step.
+> **Clean up your flashcards.** Find the cards that are eating up your review time, and fix them.
 
-A skill that connects an AI coding agent ([Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Codex](https://developers.openai.com/codex)) to your local [Anki](https://apps.ankiweb.net/) collection via the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on. Type `/anki` (or `$anki` in Codex) and it runs a health check, learns how *you* organise your deck, and helps you fix your worst cards one small batch at a time — **never changing anything without your approval.**
+This skill lets ([Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Codex](https://developers.openai.com/codex)) talk to your local [Anki](https://apps.ankiweb.net/) collection via the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on. Almost all other Anki skills for LLMs are built around generating cards. The problem is that [LLMs are reliably bad at this](https://memory-machines.com/). This skill is instead built around fixing bad cards.
+
+Type `/anki` (or `$anki` in Codex), and the LLM runs a health check on your deck, identifies the cards costing you the most reviews/time (using a custom metric), and helps you fix them. It won't change anything in your collection without your explicit approval.
+
+Everything after this point is AI-generated.
 
 ## Install
 
