@@ -2,7 +2,7 @@
 
 > **Clean up your flashcards.** Find the cards that are eating up your review time, and fix them.
 
-This skill lets ([Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Codex](https://developers.openai.com/codex)) talk to your local [Anki](https://apps.ankiweb.net/) collection via the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on. Almost all other Anki skills for LLMs are built around generating cards. The problem is that [LLMs are reliably bad at this](https://memory-machines.com/). This skill is instead built around fixing bad cards.
+This skill lets [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Codex](https://developers.openai.com/codex) talk to your local [Anki](https://apps.ankiweb.net/) collection via the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on. Almost all other Anki skills for LLMs are built around generating cards. The problem is that [LLMs are reliably bad at this](https://memory-machines.com/). This skill is instead built around fixing bad cards.
 
 Type `/anki` (or `$anki` in Codex), and the LLM runs a health check on your deck, identifies the cards costing you the most reviews/time (using a custom metric), and helps you fix them. It won't change anything in your collection without your explicit approval.
 
